@@ -154,9 +154,9 @@ class connect4():
 			else:
 				count = 0
 			if count == 4:
-				if self.visualize:
-					pygame.draw.line(screen, WHITE, (int(j*SQUARESIZE+SQUARESIZE/2), int((s+2)*SQUARESIZE)), (int(j*SQUARESIZE+SQUARESIZE/2), int((s-2)*SQUARESIZE)), 5)
-					pygame.display.update()
+				# if self.visualize:
+				# 	pygame.draw.line(screen, WHITE, (int(j*SQUARESIZE+SQUARESIZE/2), int((s+2)*SQUARESIZE)), (int(j*SQUARESIZE+SQUARESIZE/2), int((s-2)*SQUARESIZE)), 5)
+				# 	pygame.display.update()
 				return True
 		# Left diagonal
 		row = i
