@@ -20,6 +20,7 @@ class connect4Player(object):
 		move = [-1]
 
 class human(connect4Player):
+	
 
 	def play(self, env: connect4, move: list) -> None:
 		move[:] = [int(input('Select next move: '))]
@@ -29,6 +30,119 @@ class human(connect4Player):
 			move[:] = [int(input('Index invalid. Select next move: '))]
 
 class human2(connect4Player):
+	currentWeight = 0
+
+	def simulateMove(self, env: connect4, move: int, player: int):
+		env.board[env.topPosition[move]][move] = player
+		env.topPosition[move] -= 1
+		env.history[0].append(move)
+
+	def gameCheck(self, env, j, player):
+		i = env.topPosition[j] + 1
+		minRowIndex = max(j - 3, 0)
+		maxRowIndex = min(j + 3, env.shape[1]-1)
+		maxColumnIndex = max(i - 3, 0)
+		minColumnIndex = min(i + 3, env.shape[0]-1)
+		minLeftDiag = [max(j - 3, j), min(i + 3, env.shape[0]-1)]
+		maxLeftDiag = [min(j + 3, env.shape[1]-1), max(i - 3, 0)]
+		minRightDiag = [min(j + 3, j), min(i + 3, env.shape[0]-1)]
+		maxRightDiag = [max(j - 3, 0), max(i - 3, 0)]
+		# Iterate over extrema to find patterns
+		# Horizontal solutions
+		count = 0
+		weight = 0
+		for s in range(minRowIndex, maxRowIndex+1):
+			if (j == 0 and env.board[i, j+1] != player):
+				break
+			elif (j == 6 and env.board[i, j-1] != player):
+				break
+			elif (env.board[i, j-1] != player and env.board[i, j+1] != player):
+				break
+			if env.board[i, s] == player:
+				count += 1
+			else:
+				count = 0
+			if count == 4:
+				weight += float('inf')
+			elif (count == 3):
+				weight += 800
+			elif (count == 2):
+				weight += 100
+		# Verticle solutions
+		count = 0
+		for s in range(maxColumnIndex, minColumnIndex+1):
+			if (i == 0 and env.board[i+1, j] != player):
+				break
+			elif (i == 5 and env.board[i-1, j] != player):
+				break
+			elif (env.board[i-1, j] != player and env.board[i+1, j] != player):
+				break
+			if env.board[s, j] == player:
+				count += 1
+			else:
+				count = 0
+			if count == 4:
+				weight += float('inf')
+			if (count == 3):
+				weight += 800
+			if (count == 2):
+				weight += 100
+		# Left diagonal
+		row = i
+		col = j
+		count = 0
+		up = 0
+		while row > -1 and col > -1 and env.board[row][col] == player:
+			count += 1
+			row -= 1
+			col -= 1
+			if count == 4:
+				weight += float('inf')
+			if (count == 3):
+				weight += 800
+			if (count == 2):
+				weight += 100
+			down_count = count
+		row = i + 1
+		col = j + 1
+		while row < env.shape[0] and col < env.shape[1] and env.board[row][col] == player:
+			count += 1
+			row += 1
+			col += 1
+			if count == 4:
+				weight += float('inf')
+			if (count == 3):
+				weight += 800
+			if (count == 2):
+				weight += 100
+		# Right diagonal
+		row = i
+		col = j
+		count = 0
+		while row < env.shape[0] and col > -1 and env.board[row][col] == player:
+			count += 1
+			row += 1
+			col -= 1
+			if count == 4:
+				weight += float('inf')
+			if (count == 3):
+				weight += 800
+			if (count == 2):
+				weight += 100
+		down_count = count
+		row = i - 1
+		col = j + 1
+		while row > -1 and col < env.shape[1] and env.board[row][col] == player:
+			count += 1
+			row -= 1
+			col += 1
+			if count == 4:
+				weight += float('inf')
+			if (count == 3):
+				weight += 800
+			if (count == 2):
+				weight += 100
+		return weight
 
 	def play(self, env: connect4, move: list) -> None:
 		done = False
@@ -51,6 +165,10 @@ class human2(connect4Player):
 					col = int(math.floor(posx/SQUARESIZE))
 					move[:] = [col]
 					done = True
+					#####
+					# self.simulateMove(env, move[0], 1)
+					# self.currentWeight += self.gameCheck(env, move[0], 1)
+					# print (self.currentWeight)
 
 class randomAI(connect4Player):
 
@@ -82,71 +200,91 @@ class stupidAI(connect4Player):
 			move[:] = [0]
 
 class minimaxAI(connect4Player):
+	currentWeight = 0
 
-	def gameCheck(self, env, j, player, case):
-		i = env.topPosition[j] 
-		print (i)
-		offset = case - 1
-		minRowIndex = max((j - offset), 0)
-		maxRowIndex = min(j + offset, env.shape[1]-1)
-		maxColumnIndex = max(i - offset, 0)
-		minColumnIndex = min(i + offset, env.shape[0]-1)
-		minLeftDiag = [max(j - offset, j), min(i + offset, env.shape[0]-1)]
-		maxLeftDiag = [min(j + offset, env.shape[1]-1), max(i - offset, 0)]
-		minRightDiag = [min(j + offset, j), min(i + offset, env.shape[0]-1)]
-		maxRightDiag = [max(j - offset, 0), max(i - offset, 0)]
+	def simulateMove(self, env: connect4, move: int, player: int):
+		env.board[env.topPosition[move]][move] = player
+		env.topPosition[move] -= 1
+		env.history[0].append(move)
+
+	def gameCheck(self, env, j, player):
+		i = env.topPosition[j] + 1
+		minRowIndex = max(j - 3, 0)
+		maxRowIndex = min(j + 3, env.shape[1]-1)
+		maxColumnIndex = max(i - 3, 0)
+		minColumnIndex = min(i + 3, env.shape[0]-1)
+		minLeftDiag = [max(j - 3, j), min(i + 3, env.shape[0]-1)]
+		maxLeftDiag = [min(j + 3, env.shape[1]-1), max(i - 3, 0)]
+		minRightDiag = [min(j + 3, j), min(i + 3, env.shape[0]-1)]
+		maxRightDiag = [max(j - 3, 0), max(i - 3, 0)]
 		# Iterate over extrema to find patterns
 		# Horizontal solutions
 		count = 0
+		weight = 0
 		for s in range(minRowIndex, maxRowIndex+1):
+			if (j == 0 and env.board[i, j+1] != player):
+				break
+			elif (j == 6 and env.board[i, j-1] != player):
+				break
+			elif (env.board[i, j-1] != player and env.board[i, j+1] != player):
+				break
 			if env.board[i, s] == player:
 				count += 1
 			else:
 				count = 0
-			if count == case:
-				if env.visualize:
-					pygame.draw.line(screen, BLACK, (int(s*SQUARESIZE+SQUARESIZE/2), int((i+1.5)*SQUARESIZE)), (int((s-4)*SQUARESIZE+SQUARESIZE+SQUARESIZE/2), int((i+1.5)*SQUARESIZE)), 5)
-					pygame.display.update()
-				print ("Horizontal")
-				return True
+			if count == 4:
+				weight += float('inf')
+			elif (count == 3):
+				weight += 800
+			elif (count == 2):
+				weight += 100
 		# Verticle solutions
 		count = 0
 		for s in range(maxColumnIndex, minColumnIndex+1):
+			if (i == 0 and env.board[i+1, j] != player):
+				break
+			elif (i == 5 and env.board[i-1, j] != player):
+				break
+			elif (env.board[i-1, j] != player and env.board[i+1, j] != player):
+				break
 			if env.board[s, j] == player:
-				print (s, j)
 				count += 1
 			else:
 				count = 0
-			if count == case:
-				if env.visualize:
-					pygame.draw.line(screen, WHITE, (int(j*SQUARESIZE+SQUARESIZE/2), int((s+2)*SQUARESIZE)), (int(j*SQUARESIZE+SQUARESIZE/2), int((s-2)*SQUARESIZE)), 5)
-					pygame.display.update()
-				print ("Vertical")
-				return True
+			if count == 4:
+				weight += float('inf')
+			if (count == 3):
+				weight += 800
+			if (count == 2):
+				weight += 100
 		# Left diagonal
 		row = i
 		col = j
 		count = 0
 		up = 0
 		while row > -1 and col > -1 and env.board[row][col] == player:
-			print (row, col)
 			count += 1
 			row -= 1
 			col -= 1
-		down_count = count
+			if count == 4:
+				weight += float('inf')
+			if (count == 3):
+				weight += 800
+			if (count == 2):
+				weight += 100
+			down_count = count
 		row = i + 1
 		col = j + 1
 		while row < env.shape[0] and col < env.shape[1] and env.board[row][col] == player:
 			count += 1
 			row += 1
 			col += 1
-		if count == case:
-			if env.visualize:
-					# top, bottom
-					pygame.draw.line(screen, BLACK, (int((j+0.5-(down_count-1))*SQUARESIZE), int((i+1.5-(down_count-1))*SQUARESIZE)), (int((j+0.5+(4-down_count))*SQUARESIZE), int((i+1.5+(4-down_count))*SQUARESIZE)), 5)
-					pygame.display.update()
-			print ("Left Diagonal")
-			return True
+			if count == 4:
+				weight += float('inf')
+			if (count == 3):
+				weight += 800
+			if (count == 2):
+				weight += 100
 		# Right diagonal
 		row = i
 		col = j
@@ -155,6 +293,12 @@ class minimaxAI(connect4Player):
 			count += 1
 			row += 1
 			col -= 1
+			if count == 4:
+				weight += float('inf')
+			if (count == 3):
+				weight += 800
+			if (count == 2):
+				weight += 100
 		down_count = count
 		row = i - 1
 		col = j + 1
@@ -162,20 +306,19 @@ class minimaxAI(connect4Player):
 			count += 1
 			row -= 1
 			col += 1
-		if count == case:
-			if env.visualize:
-					# top, bottom
-					pygame.draw.line(screen, BLACK, (int((j+0.5-(down_count-1))*SQUARESIZE), int((i+1.5+(down_count-1))*SQUARESIZE)), (int((j+0.5+(4-down_count))*SQUARESIZE), int((i+1.5-(4-down_count))*SQUARESIZE)), 5)
-					pygame.display.update()
-			print ("Right Diagonal")
-			return True
-		#return False
-		return len(env.history[0]) + len(env.history[1]) == env.shape[0]*env.shape[1]
+			if count == 4:
+				weight += float('inf')
+			if (count == 3):
+				weight += 800
+			if (count == 2):
+				weight += 100
+		return weight
 
 	def play(self, env: connect4, move: list) -> None:
 		#print ("mini")
 		possible = env.topPosition >= 0
 		indices = []
+		#print(self.gameCheck(env, move[0], 1, 3))
 		for i, p in enumerate(possible):
 			if p: indices.append(i)
 		if 3 in indices:
@@ -190,8 +333,9 @@ class minimaxAI(connect4Player):
 			move[:] = [6]
 		else:
 			move[:] = [0]
-		if (self.gameCheck(env, move[0], 2, 3)):
-			print ("Test")
+		#print (env.topPosition[move[0]])
+		#print (self.gameCheck(env, move[0], 2, 3))
+			#print ("Test")
 			
 
 class alphaBetaAI(connect4Player):
